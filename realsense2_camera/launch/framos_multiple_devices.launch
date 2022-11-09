@@ -1,0 +1,36 @@
+<launch>
+  <arg name="namespace1"          default="camera1"/>
+  <arg name="namespace2"          default="camera2"/>
+  <arg name="config_file1"        default="/config/multicam_config_file_1.yaml"/>
+  <arg name="config_file2"        default="/config/multicam_config_file_2.yaml"/>
+  <arg name="external_manager"    default="false"/>
+  <arg name="manager"             default="realsense2_camera_manager"/>
+  <arg name="required"            default="false"/>
+  <arg name="dev_filter"          default=""/>
+
+  <group ns="$(arg namespace1)">
+    <node unless="$(arg external_manager)" pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen" required="$(arg required)"/>
+    <node pkg="nodelet" type="nodelet" name="realsense2_camera" args="load realsense2_camera/FramosRealSenseNodeFactory $(arg manager)" required="$(arg required)">
+      <param name="config_file"     type="str"  value="$(arg config_file1)"/>
+      <param name="dev_filter"     type="str"  value="$(arg dev_filter)"/>
+      
+      <rosparam file="$(find realsense2_camera)$(arg config_file1)" command="load"/>
+
+    </node>
+  </group>
+  
+  <group ns="$(arg namespace2)">
+    <node unless="$(arg external_manager)" pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen" required="$(arg required)"/>
+    <node pkg="nodelet" type="nodelet" name="realsense2_camera" args="load realsense2_camera/FramosRealSenseNodeFactory $(arg manager)" required="$(arg required)">
+      <param name="config_file"     type="str"  value="$(arg config_file2)"/>
+      <param name="dev_filter"     type="str"  value="$(arg dev_filter)"/>
+      
+      <rosparam file="$(find realsense2_camera)$(arg config_file2)" command="load"/>
+
+    </node>
+  </group>
+  
+  <!-- dummy static transformation from camera1 to camera2 -->
+  <node pkg="tf" type="static_transform_publisher" name="dummy_camera1_to_camera2" args="0 0 0 0 0 0 /camera1_link /camera2_link 20"/>
+
+</launch>
